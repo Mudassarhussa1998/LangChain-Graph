@@ -13,7 +13,13 @@ const api = axios.create({
 const handleError = (error) => {
   if (error.response) {
     // Server responded with error status
-    throw new Error(error.response.data.detail || 'Server error occurred');
+    // Try multiple paths to extract error message for better HTTP 500 handling
+    const errorMessage = 
+      error.response.data.detail || 
+      error.response.data.message || 
+      error.response.statusText || 
+      'Server error occurred';
+    throw new Error(errorMessage);
   } else if (error.request) {
     // Request made but no response
     throw new Error('No response from server. Please check if backend is running.');
