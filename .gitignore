@@ -8,3 +8,10 @@ env/
 
 __pycache__/
 *.py[cod]
+workspaces/
+whatsapp-agent/.wwebjs_auth*/
+whatsapp-agent/.wwebjs_cache/
+whatsapp-agent/.baileys_auth/
+whatsapp-agent/.owner.json
+whatsapp-agent/node_modules/
+state/

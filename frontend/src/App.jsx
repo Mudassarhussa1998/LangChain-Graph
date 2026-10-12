@@ -1,35 +1,21 @@
-import React from 'react';
+import { FiBookOpen, FiGithub, FiHelpCircle } from 'react-icons/fi';
 import ChatInterface from './components/ChatInterface';
 
 function App() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <header className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">
-            LangChain RAG
-          </h1>
-          <p className="text-indigo-100 text-lg">
-            Document Question & Answer System
-          </p>
-          <p className="text-indigo-200 text-sm mt-2">
-            Upload PDFs, ingest them, and ask questions powered by AI
-          </p>
-        </header>
-
-        {/* Main content */}
-        <main className="max-w-5xl mx-auto">
-          <ChatInterface />
-        </main>
-
-        {/* Footer */}
-        <footer className="text-center mt-8 text-indigo-100 text-sm">
-          <p>
-            Powered by LangChain, Google Gemini, and Chroma
-          </p>
-        </footer>
-      </div>
+    <div className="app-shell">
+      <header className="topbar">
+        <a className="brand" href="#top" aria-label="Indexia home">
+          <span className="brand-mark"><FiBookOpen /></span>
+          <span><strong>Indexia</strong><small>Document intelligence</small></span>
+        </a>
+        <nav className="topbar-actions" aria-label="Application links">
+          <a href="https://github.com" target="_blank" rel="noreferrer" aria-label="GitHub"><FiGithub /></a>
+          <button type="button" aria-label="Help and documentation"><FiHelpCircle /></button>
+          <span className="avatar" aria-label="Current user">MH</span>
+        </nav>
+      </header>
+      <main id="top" className="workspace"><ChatInterface /></main>
     </div>
   );
 }

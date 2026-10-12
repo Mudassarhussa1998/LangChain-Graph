@@ -1,8 +1,13 @@
 import axios from 'axios';
 
+// Allow backend URL to be configured via environment variable
+// In development: uses Vite proxy (/api -> http://localhost:8000)
+// In production: set VITE_API_URL to your backend URL
+const API_URL = import.meta.env.VITE_API_URL || '/api';
+
 // Create axios instance with base URL
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: API_URL,
   timeout: 60000, // 60 seconds timeout for ingestion
   headers: {
     'Content-Type': 'application/json',
