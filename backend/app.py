@@ -17,9 +17,12 @@ from config import DATA_DIR, VECTOR_DIR
 app = FastAPI(title="LangChain RAG API")
 
 # CORS middleware to allow frontend access
+# Configure allowed origins via ALLOWED_ORIGINS environment variable
+# Example: ALLOWED_ORIGINS="http://localhost:3000,https://yourdomain.com"
+allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[origin.strip() for origin in allowed_origins],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -53,6 +53,8 @@ Create a `.env` file in the workspace root (if not already present):
 
 ```
 GOOGLE_API_KEY=your_google_api_key_here
+# Optional: Configure CORS origins for production
+# ALLOWED_ORIGINS=http://localhost:3000,https://yourdomain.com
 ```
 
 To get a Google API key:
@@ -246,8 +248,9 @@ LangChain-Graph/
 
 **CORS errors in browser console**
 - Ensure backend is running on port 8000
-- Check CORS middleware in `backend/app.py` allows http://localhost:3000
-- Try restarting both servers
+- The backend CORS configuration allows origins specified in the `ALLOWED_ORIGINS` environment variable (defaults to `http://localhost:3000`)
+- For production deployments, set `ALLOWED_ORIGINS` in your `.env` file: `ALLOWED_ORIGINS=http://localhost:3000,https://yourdomain.com`
+- Try restarting both servers after modifying environment variables
 
 **"No response from server" error**
 - Verify backend is running: visit http://localhost:8000/api/health
@@ -298,6 +301,7 @@ Or serve the `frontend/dist` directory with any static file server.
 ### Environment Variables
 
 - `GOOGLE_API_KEY` - Required for Google Gemini API access
+- `ALLOWED_ORIGINS` - (Optional) Comma-separated list of allowed CORS origins. Defaults to `http://localhost:3000`. For production, set to your frontend domain(s): `ALLOWED_ORIGINS=http://localhost:3000,https://yourdomain.com`
 - Other LangChain/Chroma variables are configured in `config.py`
 
 ### Customization
