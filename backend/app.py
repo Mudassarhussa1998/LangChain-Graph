@@ -1,11 +1,13 @@
 import sys
 from pathlib import Path
+import logging
 
 # Add parent directory to sys.path to import existing modules
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from fastapi import FastAPI, HTTPException, File, UploadFile
+from fastapi import FastAPI, HTTPException, File, UploadFile, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import shutil
 import os
@@ -14,7 +16,26 @@ from chain import ask
 from ingest import ingest
 from config import DATA_DIR, VECTOR_DIR
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
 app = FastAPI(title="LangChain RAG API")
+
+
+# Custom exception handler to prevent internal error leakage
+@app.exception_handler(500)
+async def internal_server_error_handler(request: Request, exc: Exception):
+    """Sanitize 500 errors to prevent internal details from leaking to clients"""
+    logger.error(f"Internal server error: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "An internal server error occurred. Please try again later."}
+    )
+
 
 # CORS middleware to allow frontend access
 # Configure allowed origins via ALLOWED_ORIGINS environment variable
@@ -63,7 +84,8 @@ async def health_check():
     try:
         return {"status": "ok"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Health check failed: {str(e)}")
+        logger.error(f"Health check failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Health check failed")
 
 
 @app.get("/api/status", response_model=StatusResponse)
@@ -82,7 +104,8 @@ async def get_status():
             "document_count": document_count if ready else None
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Status check failed: {str(e)}")
+        logger.error(f"Status check failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Status check failed")
 
 
 @app.post("/api/ask", response_model=QuestionResponse)
@@ -104,13 +127,21 @@ async def ask_question(request: QuestionRequest):
         
         # Check if there was an error in the response
         if result["answer"].startswith("Error:"):
-            raise HTTPException(status_code=500, detail=result["answer"])
+            logger.error(f"RAG chain error: {result['answer']}")
+            raise HTTPException(
+                status_code=500, 
+                detail="Failed to process your question. Please try again."
+            )
         
         return result
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to process question: {str(e)}")
+        logger.error(f"Failed to process question: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500, 
+            detail="An error occurred while processing your question. Please try again."
+        )
 
 
 @app.post("/api/ingest", response_model=IngestResponse)
@@ -136,8 +167,14 @@ async def trigger_ingest():
         }
     except FileNotFoundError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Ingestion failed: {str(e)}")
+        logger.error(f"Ingestion failed: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500, 
+            detail="Document ingestion failed. Please try again."
+        )
 
 
 @app.post("/api/upload", response_model=UploadResponse)
@@ -167,7 +204,11 @@ async def upload_file(file: UploadFile = File(...)):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"File upload failed: {str(e)}")
+        logger.error(f"File upload failed: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500, 
+            detail="File upload failed. Please try again."
+        )
 
 
 if __name__ == "__main__":
